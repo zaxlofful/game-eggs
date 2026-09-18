@@ -4,7 +4,7 @@
 | Name        | Github Profile  | Buy me a Coffee |
 | ------------- |-------------|-------------|
 |
-|  ZaxLofful  | https://github.com/zaxlofful | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/yourkofiprofile) |
+|  ZaxLofful  | https://github.com/zaxlofful | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/zaxlofful) |
 
 ## Original Author
 | ------------- |-------------|-------------|
