@@ -60,12 +60,12 @@ if [ ! -z "$V_MODPACK" ]; then
     V_MODPACK_URL="https://hexium.gg/api/experimental/package/${V_MODPACK_CONVERTED}/"
 
     # Attempt to retrieve ModPack info from Hexium API first. If it fails, fallback to Thunderstore API.
-    if ! MODPACK_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
+    if ! MODPACK_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
         echo "Error: Could not retrieve $V_MODPACK metadata from Hexium API"
         V_MODPACK_URL="https://thunderstore.io/api/experimental/package/${V_MODPACK_CONVERTED}/"
 
         # Attempt to retrieve ModPack info again, nagainst the Thunderstore API.
-        if ! MODPACK_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
+        if ! MODPACK_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
             echo "Error: Could not retrieve $V_MODPACK metadata from Thunderstore API"
             exit 1
         fi
@@ -73,15 +73,15 @@ if [ ! -z "$V_MODPACK" ]; then
 
     # Extract the version number and download URL from the API response
     BEPINEX_VERSION_NUMBER=$(jq -r '.dependencies[] | select(startswith("denikson-BepInExPack_Valheim-")) | split("-")[-1]' <<< "$MODPACK_API_RESPONSE")
-    BEPINEX_DOWNLOAD_URL=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
+    BEPINEX_DOWNLOAD_URL=$(curl -fsSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
 else
     echo "No modpack specified, installing latest BepInEx"
-    if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
+    if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
         echo "Error: Could not retrieve BepInEx metadata from Hexium API"
 
         # Attempt to retrieve BepInEx info again, against the Thunderstore API.
-        if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/"); then
+        if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/"); then
             echo "Error: Could not retrieve BepInEx metadata from Thunderstore API"
             exit 1
         fi
@@ -103,7 +103,7 @@ if ! curl -fsS -o "$BEPINEX_FILENAME" "$BEPINEX_DOWNLOAD_URL"; then
     exit 1
 fi
 
-if ! unzip -oq "$BEPINEX_FILENAME"; then
+if ! 7z x -y "$BEPINEX_FILENAME" >/dev/null; then
     echo "Error: Failed to extract BepInEx from $BEPINEX_FILENAME"
     exit 1
 fi
@@ -132,12 +132,12 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         MODPACK_DEPENDENCY_METADATA_URL="https://hexium.gg/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
         # Attempt to retrieve dependency info from Hexium API first. If it fails, fallback to Thunderstore API.
-        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
+        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
             echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Hexium API"
             MODPACK_DEPENDENCY_METADATA_URL="https://thunderstore.io/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
             # Attempt to retrieve dependency info again, against the Thunderstore API.
-            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
+            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
                 echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Thunderstore API"
                 exit 1
             fi
@@ -151,7 +151,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         echo "Downloading $MODPACK_DEPENDENCY ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL"
         
         MODPACK_DEPENDENCY_FILENAME=$(basename "${MODPACK_DEPENDENCY_DOWNLOAD_URL%%\?*}")
-        if ! curl -fsSl -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
+        if ! curl -fsSL -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
             echo "Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL"
             exit 1
         fi
@@ -159,7 +159,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         # Extract DLL files from the ZIP and delete the zip file
         DEPENDENCY_TEMP_DIR=$(mktemp -d)
 
-        if ! unzip -q "$MODPACK_DEPENDENCY_FILENAME" -d "$DEPENDENCY_TEMP_DIR"; then
+        if ! 7z x -y "-o$DEPENDENCY_TEMP_DIR" "$MODPACK_DEPENDENCY_FILENAME" >/dev/null; then
             echo "Error: Failed to extract $MODPACK_DEPENDENCY_FILENAME"
             exit 1
         fi
