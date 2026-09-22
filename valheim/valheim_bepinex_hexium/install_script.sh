@@ -6,7 +6,7 @@
 apt -y update
 apt -y --no-install-recommends --no-install-suggests install curl jq unzip tar ca-certificates
 
-## just in case someone removed the defaults.
+# Just in case someone removed the defaults.
 if [ "${STEAM_USER}" == "" ]; then
     echo -e "steam user is not set.\n"
     echo -e "Using anonymous user.\n"
@@ -17,9 +17,12 @@ else
     echo -e "user set to ${STEAM_USER}"
 fi
 
-## Download and Install steamcmd
+# Download and Install steamcmd
+STEAM_TEMP_DIR=$(mktemp -d) || { echo "Failed to create TEMP directory"; exit 1; }
+cd "$STEAM_TEMP_DIR"
+
 mkdir -p /mnt/server/steamcmd
-curl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+curl -fsSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
 tar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd
 mkdir -p /mnt/server/steamapps # Fix steamcmd disk write error when this folder is missing
 cd /mnt/server/steamcmd
@@ -52,12 +55,12 @@ if [ ! -z "$V_MODPACK" ]; then
     V_MODPACK_URL="https://hexium.gg/api/experimental/package/${V_MODPACK_CONVERTED}/"
 
     # Attempt to retrieve ModPack info from Hexium API first. If it fails, fallback to Thunderstore API.
-    if ! MODPACK_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
+    if ! MODPACK_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
         echo "Error: Could not retrieve $V_MODPACK metadata from Hexium API"
         V_MODPACK_URL="https://thunderstore.io/api/experimental/package/${V_MODPACK_CONVERTED}/"
 
         # Attempt to retrieve ModPack info again, nagainst the Thunderstore API.
-        if ! MODPACK_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
+        if ! MODPACK_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
             echo "Error: Could not retrieve $V_MODPACK metadata from Thunderstore API"
             exit 1
         fi
@@ -65,15 +68,15 @@ if [ ! -z "$V_MODPACK" ]; then
 
     # Extract the version number and download URL from the API response
     BEPINEX_VERSION_NUMBER=$(jq -r '.dependencies[] | select(startswith("denikson-BepInExPack_Valheim-")) | split("-")[-1]' <<< "$MODPACK_API_RESPONSE")
-    BEPINEX_DOWNLOAD_URL=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
+    BEPINEX_DOWNLOAD_URL=$(curl -fsSl --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
 else
     echo "No modpack specified, installing latest BepInEx"
-    if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
+    if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
         echo "Error: Could not retrieve BepInEx metadata from Hexium API"
 
         # Attempt to retrieve BepInEx info again, against the Thunderstore API.
-        if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/"); then
+        if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/"); then
             echo "Error: Could not retrieve BepInEx metadata from Thunderstore API"
             exit 1
         fi
@@ -100,7 +103,7 @@ if ! unzip -oq "$BEPINEX_FILENAME"; then
     exit 1
 fi
 
-cp -r ./BepInExPack_Valheim/* /mnt/server
+cp -R ./BepInExPack_Valheim/* /mnt/server
 
 echo "BepInEx installation completed."
 
@@ -124,12 +127,12 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         MODPACK_DEPENDENCY_METADATA_URL="https://hexium.gg/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
         # Attempt to retrieve dependency info from Hexium API first. If it fails, fallback to Thunderstore API.
-        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
+        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
             echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Hexium API"
             MODPACK_DEPENDENCY_METADATA_URL="https://thunderstore.io/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
             # Attempt to retrieve dependency info again, against the Thunderstore API.
-            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
+            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -fsSl --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
                 echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Thunderstore API"
                 exit 1
             fi
@@ -143,7 +146,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         echo "Downloading $MODPACK_DEPENDENCY ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL"
         
         MODPACK_DEPENDENCY_FILENAME=$(basename "${MODPACK_DEPENDENCY_DOWNLOAD_URL%%\?*}")
-        if ! curl -fsS -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
+        if ! curl -fsSl -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
             echo "Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL"
             exit 1
         fi
@@ -179,9 +182,10 @@ echo "-------------------------------------------------------"
 echo "------------------Cleanup TEMP Files-------------------"
 echo "-------------------------------------------------------"
 
-## Cleanup leftover files
+# Cleanup leftover files
 echo "Cleaning up temporary files..."
 rm -Rf "$TEMP_DIR"
+rm -Rf "$STEAM_TEMP_DIR"
 
 echo "-------------------------------------------------------"
 echo "----------Installation Completed Successfully----------"
