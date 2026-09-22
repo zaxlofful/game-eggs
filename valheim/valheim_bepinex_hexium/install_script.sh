@@ -1,5 +1,5 @@
 #!/bin/bash
-# Valheim + BepInEx + Hexium-first modpack installer for Pterodactyl
+# Valheim + BepInEx + Modpack installer for Pterodactyl
 #
 # Server Files: /mnt/server
 # Image to install with is 'ghcr.io/ptero-eggs/installers:debian'
