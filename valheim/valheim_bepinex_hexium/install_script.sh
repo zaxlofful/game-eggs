@@ -17,8 +17,7 @@ else
     echo -e "user set to ${STEAM_USER}"
 fi
 
-## download and install steamcmd
-cd /tmp
+## Download and Install steamcmd
 mkdir -p /mnt/server/steamcmd
 curl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
 tar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd
@@ -85,16 +84,25 @@ else
     BEPINEX_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$LATEST_BEPINX_API_RESPONSE" )
 fi
 
-TEMP_DIR=$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }
+TEMP_DIR=$(mktemp -d) || { echo "Failed to create TEMP directory"; exit 1; }
 cd "$TEMP_DIR"
 
 BEPINEX_FILENAME=$(basename "${BEPINEX_DOWNLOAD_URL%%\?*}")
 
-echo "Downloading BepInEx: $BEPINEX_DOWNLOAD_URL"
-curl -fsS -o "$BEPINEX_FILENAME" "$BEPINEX_DOWNLOAD_URL" || { echo "Error: Failed to download BepInEx from $BEPINEX_DOWNLOAD_URL"; exit 1; }
+echo "Downloading BepInEx ($BEPINEX_VERSION_NUMBER) from $BEPINEX_DOWNLOAD_URL"
+if ! curl -fsS -o "$BEPINEX_FILENAME" "$BEPINEX_DOWNLOAD_URL"; then
+    echo "Error: Failed to download BepInEx from $BEPINEX_DOWNLOAD_URL"
+    exit 1
+fi
 
-unzip -o "$BEPINEX_FILENAME"
+if ! unzip -oq "$BEPINEX_FILENAME"; then
+    echo "Error: Failed to extract BepInEx from $BEPINEX_FILENAME"
+    exit 1
+fi
+
 cp -r ./BepInExPack_Valheim/* /mnt/server
+
+echo "BepInEx installation completed."
 
 if [ ! -z "$V_MODPACK_URL" ]; then
 
@@ -132,13 +140,21 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         MODPACK_DEPENDENCY_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
         
         # Download dependencies
+        echo "Downloading $MODPACK_DEPENDENCY ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL"
+        
         MODPACK_DEPENDENCY_FILENAME=$(basename "${MODPACK_DEPENDENCY_DOWNLOAD_URL%%\?*}")
-        curl -fsS -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL" || { echo "Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL"; exit 1; }
+        if ! curl -fsS -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
+            echo "Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL"
+            exit 1
+        fi
 
         # Extract DLL files from the ZIP and delete the zip file
         DEPENDENCY_TEMP_DIR=$(mktemp -d)
 
-        unzip -q "$MODPACK_DEPENDENCY_FILENAME" -d "$DEPENDENCY_TEMP_DIR"
+        if ! unzip -q "$MODPACK_DEPENDENCY_FILENAME" -d "$DEPENDENCY_TEMP_DIR"; then
+            echo "Error: Failed to extract $MODPACK_DEPENDENCY_FILENAME"
+            exit 1
+        fi
 
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
@@ -155,6 +171,8 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         rm -Rf "$DEPENDENCY_TEMP_DIR"
         rm -f "$MODPACK_DEPENDENCY_FILENAME"
     done
+
+    echo "All dependencies have been downloaded and installed successfully."
 fi
 
 echo "-------------------------------------------------------"
@@ -162,11 +180,8 @@ echo "------------------Cleanup TEMP Files-------------------"
 echo "-------------------------------------------------------"
 
 ## Cleanup leftover files
-rm -Rf BepInExPack_Valheim
-rm -f icon.png
-rm -Rf denikson-BepInExPack_Valheim-*
-rm -f manifest.json
-rm -f README.md
+echo "Cleaning up temporary files..."
+rm -Rf "$TEMP_DIR"
 
 echo "-------------------------------------------------------"
 echo "----------Installation Completed Successfully----------"
