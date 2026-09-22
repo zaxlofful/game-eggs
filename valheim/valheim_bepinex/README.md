@@ -2,7 +2,9 @@
 
 ## Author & Contributers
 | Name        | Github Profile  | Buy me a Coffee |
-| ------------- |-------------|-------------|
+
+|  ZaxLofful  | https://github.com/zaxlofful | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/zaxlofful) |
+
 |   gOOvER   | https://github.com/gOOvER | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B351D0Q) |
 
 ## Valheim
@@ -20,8 +22,9 @@ BepInEx is a general purpose framework for Unity modding. BepInEx includes tools
 
 BepInEx is currently one of the most popular modding tools for Unity on GitHub.
 
-This pack is preconfigured and usable for Valheim modding.
-In particular, the changes from base BepInEx releases are:
+This Egg is preconfigured and usable for Valheim modding; which requires changes from the base BepInEx release to function properly.
+
+ In particular, for Valheim those changes are:
 
 - Added preconfigured BepInEx.cfg with console enabled.
 - Added unstripped Unity + Mono BCL DLLs for current versions of the game. See this issue comment for more info.
@@ -29,7 +32,7 @@ In particular, the changes from base BepInEx releases are:
 - Added scripts necessary to run both game and dedicated server on Linux machines
 
 ## Automatic Mod Downloading
-Mods can be downloaded from modpacks automatically by entering the "dependency string" for the modpack from https://valheim.thunderstore.io/
+Mods can be downloaded from modpacks automatically by entering the "dependency string" which will be checked against Hexium and Thunderstore.
 
 ## Server Ports
 
