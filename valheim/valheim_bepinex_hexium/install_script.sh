@@ -121,6 +121,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
     # Delete old dependencies
     rm -Rf /mnt/server/BepInEx/plugins/*
     rm -Rf /mnt/server/BepInEx/patchers/*
+    rm -Rf /mnt/server/BepInEx/core/*
 
     # Download and extract the modpack dlls files
     for MODPACK_DEPENDENCY in $MODPACK_DEPENDENCIES; do
