@@ -108,7 +108,7 @@ if ! 7z x -y "$BEPINEX_FILENAME" >/dev/null; then
     exit 1
 fi
 
-cp -R ./BepInExPack_Valheim/* /mnt/server
+cp -Rf ./BepInExPack_Valheim/* /mnt/server
 mkdir -p /mnt/server/BepInEx/plugins
 mkdir -p /mnt/server/BepInEx/patchers
 
