@@ -174,7 +174,6 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         fi
 
         # Clean up temporary files for the current dependency
-        echo "Cleaning up temporary files for $MODPACK_DEPENDENCY"
         rm -Rf "$DEPENDENCY_TEMP_DIR"
         rm -f "$MODPACK_DEPENDENCY_FILENAME"
     done
