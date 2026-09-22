@@ -169,18 +169,18 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
             echo "Copying BepInEx directory as is"
-            cp -Rf "$DEPENDENCY_TEMP_DIR/BepInEx" /mnt/server/BepInEx
+            cp -Rf "$DEPENDENCY_TEMP_DIR/BepInEx/" /mnt/server/BepInEx
         else
             for MOD_DIRECTORY in plugins patchers config core; do
                 if [ -d "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY" ]; then
                     echo "Copying $MOD_DIRECTORY directory into BepInEx directory"
-                    cp -Rf "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY" "/mnt/server/BepInEx/$MOD_DIRECTORY"
+                    cp -Rf "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY/" "/mnt/server/BepInEx/$MOD_DIRECTORY"
                 fi
             done
         fi
 
         find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec \
-            cp {} /mnt/server/BepInEx/plugins/ \; && echo "Copied ROOT level DLL files to BepInEx/plugins"
+            cp {} /mnt/server/BepInEx/plugins \; && echo "Copied ROOT level DLL files to BepInEx/plugins"
 
         # Clean up temporary files for the current dependency
         rm -Rf "$DEPENDENCY_TEMP_DIR"
