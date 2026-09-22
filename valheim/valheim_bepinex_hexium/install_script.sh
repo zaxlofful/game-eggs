@@ -109,6 +109,8 @@ if ! 7z x -y "$BEPINEX_FILENAME" >/dev/null; then
 fi
 
 cp -R ./BepInExPack_Valheim/* /mnt/server
+mkdir -p /mnt/server/BepInEx/plugins
+mkdir -p /mnt/server/BepInEx/patchers
 
 echo "BepInEx installation completed."
 
@@ -167,18 +169,18 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
             echo "Copying BepInEx directory as is"
-            cp -R "$DEPENDENCY_TEMP_DIR/BepInEx/"* /mnt/server/BepInEx
+            cp -Rf "$DEPENDENCY_TEMP_DIR/BepInEx" /mnt/server/BepInEx
         else
-            for directory in plugins patchers config core; do
-                if [ -d "$DEPENDENCY_TEMP_DIR/$directory" ]; then
-                    echo "Copying $directory directory into BepInEx directory"
-                    cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory"
+            for MOD_DIRECTORY in plugins patchers config core; do
+                if [ -d "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY" ]; then
+                    echo "Copying $MOD_DIRECTORY directory into BepInEx directory"
+                    cp -Rf "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY" "/mnt/server/BepInEx/$MOD_DIRECTORY"
                 fi
             done
         fi
 
         find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec \
-            cp {} /mnt/server/BepInEx/plugins \; && echo "Copied ROOT level DLL files to BepInEx/plugins"
+            cp {} /mnt/server/BepInEx/plugins/ \; && echo "Copied ROOT level DLL files to BepInEx/plugins"
 
         # Clean up temporary files for the current dependency
         rm -Rf "$DEPENDENCY_TEMP_DIR"
