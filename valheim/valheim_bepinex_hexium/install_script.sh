@@ -167,12 +167,12 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
             echo "Copying BepInEx directory as is"
-            cp -R "$DEPENDENCY_TEMP_DIR/BepInEx/"* /mnt/server/BepInEx/
+            cp -R "$DEPENDENCY_TEMP_DIR/BepInEx/"* /mnt/server/BepInEx
         else
             for directory in plugins patchers config core; do
                 if [ -d "$DEPENDENCY_TEMP_DIR/$directory" ]; then
                     echo "Copying $directory directory into BepInEx directory"
-                    cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory/"
+                    cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory"
                 fi
             done
         fi
