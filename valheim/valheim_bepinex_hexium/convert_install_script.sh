@@ -24,7 +24,7 @@ output="install_script_oneline.txt"
         printf '%s\\r\\n' "$line"
     done < "$input"
 
-    printf '"'
+    printf '",'
 } > "$output"
 
 printf 'Created %s\n' "$output"
