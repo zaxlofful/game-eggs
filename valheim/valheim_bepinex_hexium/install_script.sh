@@ -179,7 +179,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
             done
         fi
 
-        find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec \
+        find "$DEPENDENCY_TEMP_DIR" -maxdepth 0 -type f -name '*.dll' -exec \
             cp {} /mnt/server/BepInEx/plugins \; && echo "Copied ROOT level DLL files to BepInEx/plugins"
 
         # Clean up temporary files for the current dependency
