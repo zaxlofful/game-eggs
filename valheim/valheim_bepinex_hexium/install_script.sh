@@ -166,12 +166,14 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         else
             for directory in plugins patchers config core; do
                 if [ -d "$DEPENDENCY_TEMP_DIR/$directory" ]; then
-                    echo "Copying $directory folder into BepInEx directory"
-                    mkdir -p "/mnt/server/BepInEx/$directory"
+                    echo "Copying $directory directory into BepInEx directory"
                     cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory/"
                 fi
             done
         fi
+
+        find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec \
+            cp -v {} /mnt/server/BepInEx/plugins/ \; && echo "Copied ROOT level DLL files to BepInEx/plugins/"
 
         # Clean up temporary files for the current dependency
         rm -Rf "$DEPENDENCY_TEMP_DIR"
