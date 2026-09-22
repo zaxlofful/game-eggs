@@ -109,7 +109,7 @@ echo "BepInEx installation completed."
 
 if [ ! -z "$V_MODPACK_URL" ]; then
 
-    echo "Downloading ModPack: $V_MODPACK_URL"
+    echo "Downloading ModPack ($V_MODPACK) from $V_MODPACK_URL"
 
     # Delete old dependencies
     rm -Rf /mnt/server/BepInEx/plugins/*
@@ -139,8 +139,8 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         fi
 
         # Extract the version number and download URL from the API response
-        MODPACK_DEPENDENCY_VERSION_NUMBER=$(jq -r  ".latest.version_number" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
-        MODPACK_DEPENDENCY_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
+        MODPACK_DEPENDENCY_VERSION_NUMBER=$(jq -r  ".version_number" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
+        MODPACK_DEPENDENCY_DOWNLOAD_URL=$(jq -r  ".download_url" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
         
         # Download dependencies
         echo "Downloading $MODPACK_DEPENDENCY ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL"
@@ -161,16 +161,20 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
+            echo "Copying BepInEx directory as is"
             cp -R "$DEPENDENCY_TEMP_DIR/BepInEx/"* /mnt/server/BepInEx/
         else
             for directory in plugins patchers config core; do
                 if [ -d "$DEPENDENCY_TEMP_DIR/$directory" ]; then
+                    echo "Copying $directory folder into BepInEx directory"
                     mkdir -p "/mnt/server/BepInEx/$directory"
                     cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory/"
                 fi
             done
         fi
 
+        # Clean up temporary files for the current dependency
+        echo "Cleaning up temporary files for $MODPACK_DEPENDENCY"
         rm -Rf "$DEPENDENCY_TEMP_DIR"
         rm -f "$MODPACK_DEPENDENCY_FILENAME"
     done
