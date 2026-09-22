@@ -81,23 +81,26 @@ else
     BEPINEX_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$LATEST_BEPINX_API_RESPONSE" )
 fi
 
-cd /mnt/server
+TEMP_DIR=$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }
+cd "$TEMP_DIR"
+
 echo "Downloading BepInEx: $BEPINEX_DOWNLOAD_URL"
-curl -OJ $BEPINEX_DOWNLOAD_URL
+curl -OJ $BEPINEX_DOWNLOAD_URL || { echo "Error: Failed to download BepInEx from $BEPINEX_DOWNLOAD_URL"; exit 1; }
 BEPINEX_FILENAME=$(basename "${BEPINEX_DOWNLOAD_URL%%\?*}")
 unzip -o "$BEPINEX_FILENAME"
-cp -r /mnt/server/BepInExPack_Valheim/* /mnt/server
+cp -r ./BepInExPack_Valheim/* /mnt/server
 
 if [ ! -z "$V_MODPACK_URL" ]; then
 
     echo "Downloading ModPack: $V_MODPACK_URL"
 
-    #Delete Old Mods
-    rm -rf /mnt/server/BepInEx/plugins/*
+    # Delete old dependencies
+    rm -Rf /mnt/server/BepInEx/plugins/*
+    rm -Rf /mnt/server/BepInEx/patchers/*
 
-    #Download and extract the modpack dlls files
+    # Download and extract the modpack dlls files
     for MODPACK_DEPENDENCY in $MODPACK_DEPENDENCIES; do
-        #ignore bepinex
+        # Ignore BepInEx
         if [[ "$MODPACK_DEPENDENCY" == *"denikson-BepInExPack_Valheim"* ]]; then
             continue  # Skip this dependency
         fi
@@ -119,32 +122,32 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         fi
         
         # Download dependencies
-        curl -OJ "$MODPACK_DEPENDENCY_URL"
+        curl -OJ "$MODPACK_DEPENDENCY_URL" || { echo "Error: Failed to download $MODPACK_DEPENDENCY_URL"; exit 1; }
 
         # Extract DLL files from the ZIP and delete the zip file
-        TEMP_DIR=$(mktemp -d)
+        DEPENDENCY_TEMP_DIR=$(mktemp -d)
 
-        unzip -q "$MODPACK_DEPENDENCY.zip" -d "$TEMP_DIR"
+        unzip -q "$MODPACK_DEPENDENCY.zip" -d "$DEPENDENCY_TEMP_DIR"
 
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
-        if [ -d "$TEMP_DIR/BepInEx" ]; then
-            cp -R "$TEMP_DIR/BepInEx/"* /mnt/server/BepInEx/
+        if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
+            cp -R "$DEPENDENCY_TEMP_DIR/BepInEx/"* /mnt/server/BepInEx/
         else
             for directory in plugins patchers config core; do
-                if [ -d "$TEMP_DIR/$directory" ]; then
+                if [ -d "$DEPENDENCY_TEMP_DIR/$directory" ]; then
                     mkdir -p "/mnt/server/BepInEx/$directory"
-                    cp -R "$TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory/"
+                    cp -R "$DEPENDENCY_TEMP_DIR/$directory/"* "/mnt/server/BepInEx/$directory/"
                 fi
             done
         fi
 
-        rm -Rf "$TEMP_DIR"
+        rm -Rf "$DEPENDENCY_TEMP_DIR"
         rm -f "$MODPACK_DEPENDENCY.zip"
     done
 fi
 
 echo "-------------------------------------------------------"
-echo "---------------------Cleanup Files---------------------"
+echo "------------------Cleanup TEMP Files-------------------"
 echo "-------------------------------------------------------"
 
 ## Cleanup
