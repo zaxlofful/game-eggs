@@ -64,7 +64,7 @@ if [ ! -z "$V_MODPACK" ]; then
     fi
 
     BEPINEX_VERSION_NUMBER=$(jq -r '.dependencies[] | select(startswith("denikson-BepInExPack_Valheim-")) | split("-")[-1]' <<< "$MODPACK_API_RESPONSE")
-    BEPINEX_DOWNLOAD_URL="${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/"
+    BEPINEX_DOWNLOAD_URL=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
 else
     if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
