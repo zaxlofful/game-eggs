@@ -46,6 +46,7 @@ echo "---------Installing BepInEx and Specified Mods---------"
 echo "-------------------------------------------------------"
 
 if [ ! -z "$V_MODPACK" ]; then
+    echo "Installing modpack: $V_MODPACK"
 
     # Modpack Name dashes to slashes for URL
     V_MODPACK_CONVERTED=$(echo "$V_MODPACK" | sed 's/-/\//g')
@@ -63,10 +64,12 @@ if [ ! -z "$V_MODPACK" ]; then
         fi
     fi
 
+    # Extract the version number and download URL from the API response
     BEPINEX_VERSION_NUMBER=$(jq -r '.dependencies[] | select(startswith("denikson-BepInExPack_Valheim-")) | split("-")[-1]' <<< "$MODPACK_API_RESPONSE")
     BEPINEX_DOWNLOAD_URL=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
 else
+    echo "No modpack specified, installing latest BepInEx"
     if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
         echo "Error: Could not retrieve BepInEx metadata from Hexium API"
 
@@ -77,6 +80,7 @@ else
         fi
     fi
     
+    # Extract the version number and download URL from the API response
     BEPINEX_VERSION_NUMBER=$(jq -r  ".latest.version_number" <<< "$LATEST_BEPINX_API_RESPONSE" )
     BEPINEX_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$LATEST_BEPINX_API_RESPONSE" )
 fi
@@ -84,9 +88,11 @@ fi
 TEMP_DIR=$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }
 cd "$TEMP_DIR"
 
-echo "Downloading BepInEx: $BEPINEX_DOWNLOAD_URL"
-curl -OJ $BEPINEX_DOWNLOAD_URL || { echo "Error: Failed to download BepInEx from $BEPINEX_DOWNLOAD_URL"; exit 1; }
 BEPINEX_FILENAME=$(basename "${BEPINEX_DOWNLOAD_URL%%\?*}")
+
+echo "Downloading BepInEx: $BEPINEX_DOWNLOAD_URL"
+curl -fsS -o "$BEPINEX_FILENAME" "$BEPINEX_DOWNLOAD_URL" || { echo "Error: Failed to download BepInEx from $BEPINEX_DOWNLOAD_URL"; exit 1; }
+
 unzip -o "$BEPINEX_FILENAME"
 cp -r ./BepInExPack_Valheim/* /mnt/server
 
@@ -107,27 +113,32 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
         # Dependency Name dashes to slashes for URL
         MODPACK_DEPENDENCY_CONVERTED=$(echo "$MODPACK_DEPENDENCY" | sed 's/-/\//g')
-        MODPACK_DEPENDENCY_URL="https://hexium.gg/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
+        MODPACK_DEPENDENCY_METADATA_URL="https://hexium.gg/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
         # Attempt to retrieve dependency info from Hexium API first. If it fails, fallback to Thunderstore API.
-        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_URL}"); then
+        if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
             echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Hexium API"
-            MODPACK_DEPENDENCY_URL="https://thunderstore.io/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
+            MODPACK_DEPENDENCY_METADATA_URL="https://thunderstore.io/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
             # Attempt to retrieve dependency info again, against the Thunderstore API.
-            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_URL}"); then
+            if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_METADATA_URL}"); then
                 echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Thunderstore API"
                 exit 1
             fi
         fi
+
+        # Extract the version number and download URL from the API response
+        MODPACK_DEPENDENCY_VERSION_NUMBER=$(jq -r  ".latest.version_number" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
+        MODPACK_DEPENDENCY_DOWNLOAD_URL=$(jq -r  ".latest.download_url" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
         
         # Download dependencies
-        curl -OJ "$MODPACK_DEPENDENCY_URL" || { echo "Error: Failed to download $MODPACK_DEPENDENCY_URL"; exit 1; }
+        MODPACK_DEPENDENCY_FILENAME=$(basename "${MODPACK_DEPENDENCY_DOWNLOAD_URL%%\?*}")
+        curl -fsS -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL" || { echo "Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL"; exit 1; }
 
         # Extract DLL files from the ZIP and delete the zip file
         DEPENDENCY_TEMP_DIR=$(mktemp -d)
 
-        unzip -q "$MODPACK_DEPENDENCY.zip" -d "$DEPENDENCY_TEMP_DIR"
+        unzip -q "$MODPACK_DEPENDENCY_FILENAME" -d "$DEPENDENCY_TEMP_DIR"
 
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
@@ -142,7 +153,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         fi
 
         rm -Rf "$DEPENDENCY_TEMP_DIR"
-        rm -f "$MODPACK_DEPENDENCY.zip"
+        rm -f "$MODPACK_DEPENDENCY_FILENAME"
     done
 fi
 
