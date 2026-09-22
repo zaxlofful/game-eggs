@@ -53,12 +53,12 @@ if [ ! -z "$V_MODPACK" ]; then
 
     # Attempt to retrieve ModPack info from Hexium API first. If it fails, fallback to Thunderstore API.
     if ! MODPACK_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
-        echo "Error: Could not retrieve ModPack info from Hexium API"
+        echo "Error: Could not retrieve $V_MODPACK metadata from Hexium API"
         V_MODPACK_URL="https://thunderstore.io/api/experimental/package/${V_MODPACK_CONVERTED}/"
 
         # Attempt to retrieve ModPack info again, nagainst the Thunderstore API.
         if ! MODPACK_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL}"); then
-            echo "Error: Could not retrieve ModPack info from Hexium or Thunderstore API"
+            echo "Error: Could not retrieve $V_MODPACK metadata from Thunderstore API"
             exit 1
         fi
     fi
@@ -68,11 +68,11 @@ if [ ! -z "$V_MODPACK" ]; then
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
 else
     if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
-        echo "Error: Could not retrieve BepInEx info from Hexium API"
+        echo "Error: Could not retrieve BepInEx metadata from Hexium API"
 
         # Attempt to retrieve BepInEx info again, against the Thunderstore API.
         if ! LATEST_BEPINX_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/"); then
-            echo "Error: Could not retrieve BepInEx info from Hexium or Thunderstore API"
+            echo "Error: Could not retrieve BepInEx metadata from Thunderstore API"
             exit 1
         fi
     fi
@@ -83,7 +83,9 @@ fi
 
 cd /mnt/server
 echo "Downloading BepInEx: $BEPINEX_DOWNLOAD_URL"
-curl -OJ $BEPINEX_DOWNLOAD_URL | unzip -o
+curl -OJ $BEPINEX_DOWNLOAD_URL
+BEPINEX_FILENAME=$(basename "${BEPINEX_DOWNLOAD_URL%%\?*}")
+unzip -o "$BEPINEX_FILENAME"
 cp -r /mnt/server/BepInExPack_Valheim/* /mnt/server
 
 if [ ! -z "$V_MODPACK_URL" ]; then
@@ -106,12 +108,12 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
         # Attempt to retrieve dependency info from Hexium API first. If it fails, fallback to Thunderstore API.
         if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_URL}"); then
-            echo "Error: Could not retrieve dependency info from Hexium API"
+            echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Hexium API"
             MODPACK_DEPENDENCY_URL="https://thunderstore.io/api/experimental/package/${MODPACK_DEPENDENCY_CONVERTED}/"
 
             # Attempt to retrieve dependency info again, against the Thunderstore API.
             if ! MODPACK_DEPENDENCY_API_RESPONSE=$(curl -sfSL --max-time 5 -H "accept: application/json" "${MODPACK_DEPENDENCY_URL}"); then
-                echo "Error: Could not retrieve dependency info from Hexium or Thunderstore API"
+                echo "Error: Could not retrieve $MODPACK_DEPENDENCY metadata from Thunderstore API"
                 exit 1
             fi
         fi
@@ -152,6 +154,6 @@ rm -Rf denikson-BepInExPack_Valheim-*
 rm -f manifest.json
 rm -f README.md
 
-log "-------------------------------------------------------"
-log "Installation completed successfully"
-log "-------------------------------------------------------"
+echo "-------------------------------------------------------"
+echo "----------Installation Completed Successfully----------"
+echo "-------------------------------------------------------"
