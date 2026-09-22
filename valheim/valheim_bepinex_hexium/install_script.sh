@@ -161,7 +161,7 @@ echo "-------------------------------------------------------"
 echo "------------------Cleanup TEMP Files-------------------"
 echo "-------------------------------------------------------"
 
-## Cleanup
+## Cleanup leftover files
 rm -Rf BepInExPack_Valheim
 rm -f icon.png
 rm -Rf denikson-BepInExPack_Valheim-*
