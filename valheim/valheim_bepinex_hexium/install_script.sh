@@ -4,7 +4,7 @@
 # Server Files: /mnt/server
 # Image to install with is 'ghcr.io/ptero-eggs/installers:debian'
 apt -y update
-apt -y --no-install-recommends --no-install-suggests install curl jq unzip tar ca-certificates
+apt -y --no-install-recommends --no-install-suggests install curl jq p7zip-full ca-certificates
 
 # Just in case someone removed the defaults.
 if [ "${STEAM_USER}" == "" ]; then
@@ -23,7 +23,12 @@ cd "$STEAM_TEMP_DIR"
 
 mkdir -p /mnt/server/steamcmd
 curl -fsSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-tar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd
+
+if ! 7z x steamcmd.tar.gz -so | 7z x -aoa -si -ttar -o/mnt/server/steamcmd >/dev/null; then
+    echo "Error: Failed to extract SteamCMD archive"
+    exit 1
+fi
+
 mkdir -p /mnt/server/steamapps # Fix steamcmd disk write error when this folder is missing
 cd /mnt/server/steamcmd
 
@@ -173,7 +178,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         fi
 
         find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec \
-            cp -v {} /mnt/server/BepInEx/plugins/ \; && echo "Copied ROOT level DLL files to BepInEx/plugins/"
+            cp {} /mnt/server/BepInEx/plugins/ \; && echo "Copied ROOT level DLL files to BepInEx/plugins/"
 
         # Clean up temporary files for the current dependency
         rm -Rf "$DEPENDENCY_TEMP_DIR"
