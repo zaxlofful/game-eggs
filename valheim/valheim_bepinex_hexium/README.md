@@ -30,7 +30,11 @@ In particular, the changes from base BepInEx releases are:
 - Added scripts necessary to run both game and dedicated server on Linux machines
 
 ## Automatic Mod Downloading
-Mods can be downloaded from modpacks automatically by entering the "dependency string" for the modpack from https://valheim.hexium.gg/
+Mods can be downloaded from ModPacks automatically by entering the "dependency string" for the ModPack from Hexium and/or Thunderstore.
+
+Example ModPack committed to Vanilla experience with enhanced performance: https://valheim.hexium.gg/mods/Loffulbyte/PterodactylEgg
+
+Note: This Egg will check both of the previously mentioned mod stores for the ModPack and/or mods.
 
 ## Server Ports
 
