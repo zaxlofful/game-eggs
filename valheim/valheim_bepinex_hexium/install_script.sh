@@ -209,30 +209,24 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         for FILE in "$DEPENDENCY_TEMP_DIR"/*\\*; do
             [ -e "$FILE" ] || continue
             NEW_FILE="${FILE//\\//}"
+            echo -e "${YELLOW}Fixing Windows-style backslashes in $FILE to $NEW_FILE${NC}"
             mkdir -p "$(dirname "$NEW_FILE")"
             mv "$FILE" "$NEW_FILE"
         done
 
-        # Check if the extracted directory contains BepInEx folder or individual plugin folders
-        if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
-            echo -e "${YELLOW}Copying BepInEx directory as is${NC}"
-            cp -Rf "$DEPENDENCY_TEMP_DIR/BepInEx/." /mnt/server/BepInEx
-        else
-            for MOD_DIRECTORY in plugins patchers; do
-                if [ -d "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY" ]; then
-                    echo -e "${YELLOW}Copying $MOD_DIRECTORY directory into BepInEx directory${NC}"
-                    cp -Rf "$DEPENDENCY_TEMP_DIR/$MOD_DIRECTORY/." "/mnt/server/BepInEx/$MOD_DIRECTORY"
-                fi
-            done
-        fi
-
-        # Copy root-level DLL files into BepInEx/plugins
-        ROOT_DLLS=("$DEPENDENCY_TEMP_DIR"/*.dll)
-
-        if [ -e "${ROOT_DLLS[0]}" ]; then
-            cp -f -- "${ROOT_DLLS[@]}" /mnt/server/BepInEx/plugins/
-            echo -e "${YELLOW}Copied ROOT level DLL files to BepInEx/plugins${NC}"
-        fi
+        # Copy extracted DLL files to the appropriate BepInEx directories
+        find "$DEPENDENCY_TEMP_DIR" -type f -name '*.dll' | while IFS= read -r FILE; do
+            case "$FILE" in
+                "$DEPENDENCY_TEMP_DIR"/BepInEx/patchers/*|"$DEPENDENCY_TEMP_DIR"/patchers/*)
+                    echo -e "${YELLOW}Copying patcher DLL $FILE to BepInEx/patchers${NC}"
+                    cp -f -- "$FILE" /mnt/server/BepInEx/patchers/
+                    ;;
+                *)
+                    echo -e "${YELLOW}Copying plugin DLL $FILE to BepInEx/plugins${NC}"
+                    cp -f -- "$FILE" /mnt/server/BepInEx/plugins/
+                    ;;
+            esac
+        done
 
         # Clean up temporary files for the current dependency
         rm -Rf "$DEPENDENCY_TEMP_DIR"
