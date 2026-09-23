@@ -3,6 +3,7 @@
 #
 # Server Files: /mnt/server
 # Image to install with is 'ghcr.io/ptero-eggs/installers:debian'
+
 clear
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,7 +21,7 @@ apt -y --no-install-recommends --no-install-suggests install curl jq p7zip-full 
 
 # Just in case someone removed the defaults.
 if [ "${STEAM_USER}" == "" ]; then
-    echo -e "${RED}steam user is not set.${NC}\n"
+    echo -e "${YELLOW}steam user is not set.${NC}\n"
     echo -e "${YELLOW}Using anonymous user.${NC}\n"
     STEAM_USER=anonymous
     STEAM_PASS=""
