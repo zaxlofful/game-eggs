@@ -88,7 +88,7 @@ echo -e "${YELLOW}---------Installing BepInEx and Specified Mods---------${NC}"
 echo -e "${BLUE}-------------------------------------------------------${NC}"
 
 if [ ! -z "$V_MODPACK" ]; then
-    echo -e "${YELLOW}Installing modpack: $V_MODPACK${NC}"
+    echo -e "${YELLOW}Retrieving ModPack metadata for: $V_MODPACK${NC}"
 
     # Modpack Name dashes to slashes for URL
     V_MODPACK_CONVERTED=$(echo "$V_MODPACK" | sed 's/-/\//g')
@@ -183,13 +183,14 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         # Extract the version number and download URL from the API response
         MODPACK_DEPENDENCY_VERSION_NUMBER=$(jq -r  ".version_number" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
         MODPACK_DEPENDENCY_DOWNLOAD_URL=$(jq -r  ".download_url" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
+        MODPACK_DEPENDENCY_NAME=$(jq -r  ".name" <<< "$MODPACK_DEPENDENCY_API_RESPONSE" )
         
         # Download dependencies
-        echo -e "${YELLOW}Downloading $MODPACK_DEPENDENCY ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL${NC}"
+        echo -e "${YELLOW}Downloading $MODPACK_DEPENDENCY_NAME ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL${NC}"
         
         MODPACK_DEPENDENCY_FILENAME=$(basename "${MODPACK_DEPENDENCY_DOWNLOAD_URL%%\?*}")
         if ! curl -fsSL -o "$MODPACK_DEPENDENCY_FILENAME" "$MODPACK_DEPENDENCY_DOWNLOAD_URL"; then
-            echo -e "${RED}Error: Failed to download $MODPACK_DEPENDENCY_DOWNLOAD_URL${NC}"
+            echo -e "${RED}Error: Failed to download $MODPACK_DEPENDENCY_NAME ($MODPACK_DEPENDENCY_VERSION_NUMBER) from $MODPACK_DEPENDENCY_DOWNLOAD_URL${NC}"
             exit 1
         fi
 
@@ -226,7 +227,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         rm -Rf "$DEPENDENCY_TEMP_DIR"
         rm -f "$MODPACK_DEPENDENCY_FILENAME"
 
-        echo -e "${GREEN}Installed dependency: $MODPACK_DEPENDENCY_FILENAME${NC}"
+        echo -e "${GREEN}Installed dependency: $MODPACK_DEPENDENCY_NAME${NC}"
     done
 
     echo -e "${GREEN}All dependencies have been downloaded and installed successfully.${NC}"
