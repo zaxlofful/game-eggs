@@ -1,11 +1,11 @@
 ﻿# Valheim BepInEx
 
 ## Author & Contributers
-| Name        | Github Profile  | Buy me a Coffee |
+|  Name        | Github Profile  | Buy me a Coffee |
 
 |  ZaxLofful (Current Maintainer)  | https://github.com/zaxlofful | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/zaxlofful) |
 
-|   gOOvER (Original Author)   | https://github.com/gOOvER | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B351D0Q) |
+|  gOOvER (Original Author)   | https://github.com/gOOvER | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B351D0Q) |
 
 ## Valheim
 
