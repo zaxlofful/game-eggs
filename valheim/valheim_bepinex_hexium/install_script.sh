@@ -207,22 +207,26 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
         # Fix Windows-style backslashes in extracted paths
         for FILE in "$DEPENDENCY_TEMP_DIR"/*\\*; do
+            RELATIVE_FILE="${FILE#"$DEPENDENCY_TEMP_DIR"/}"
             [ -e "$FILE" ] || continue
             NEW_FILE="${FILE//\\//}"
-            echo -e "${YELLOW}Fixing Windows-style backslashes in $FILE to $NEW_FILE${NC}"
+            RELATIVE_NEW_FILE="${NEW_FILE#"$DEPENDENCY_TEMP_DIR"/}"
+            echo -e "${YELLOW}Fixing Windows-style backslashes in $RELATIVE_FILE to $RELATIVE_NEW_FILE${NC}"
             mkdir -p "$(dirname "$NEW_FILE")"
             mv "$FILE" "$NEW_FILE"
         done
 
         # Copy extracted DLL files to the appropriate BepInEx directories
         find "$DEPENDENCY_TEMP_DIR" -type f -name '*.dll' | while IFS= read -r FILE; do
+            RELATIVE_FILE="${FILE#"$DEPENDENCY_TEMP_DIR"/}"
+
             case "$FILE" in
                 "$DEPENDENCY_TEMP_DIR"/BepInEx/patchers/*|"$DEPENDENCY_TEMP_DIR"/patchers/*)
-                    echo -e "${YELLOW}Copying patcher DLL $FILE to BepInEx/patchers${NC}"
+                    echo -e "${YELLOW}Copying patcher DLL $RELATIVE_FILE to BepInEx/patchers${NC}"
                     cp -f -- "$FILE" /mnt/server/BepInEx/patchers/
                     ;;
                 *)
-                    echo -e "${YELLOW}Copying plugin DLL $FILE to BepInEx/plugins${NC}"
+                    echo -e "${YELLOW}Copying plugin DLL $RELATIVE_FILE to BepInEx/plugins${NC}"
                     cp -f -- "$FILE" /mnt/server/BepInEx/plugins/
                     ;;
             esac
