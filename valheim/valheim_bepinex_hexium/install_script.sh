@@ -37,14 +37,17 @@ cd /mnt/server/steamcmd
 chown -R root:root /mnt
 export HOME=/mnt/server
 
-## install game using steamcmd
-./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}" ) ${INSTALL_FLAGS} validate +quit ## other flags may be needed depending on install. looking at you cs 1.6
+# Install game using SteamCMD
+if ! ./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}" ) ${INSTALL_FLAGS} validate +quit; then
+    echo "Error: SteamCMD failed to install or update the Valheim server"
+    exit 1
+fi
 
-## set up 32 bit libraries
+# Set up 32 bit libraries
 mkdir -p /mnt/server/.steam/sdk32
 cp -v linux32/steamclient.so ../.steam/sdk32/steamclient.so
 
-## set up 64 bit libraries
+# Set up 64 bit libraries
 mkdir -p /mnt/server/.steam/sdk64
 cp -v linux64/steamclient.so ../.steam/sdk64/steamclient.so
 
@@ -179,8 +182,11 @@ if [ ! -z "$V_MODPACK_URL" ]; then
             done
         fi
 
-        if [ -e "$DEPENDENCY_TEMP_DIR"/*.dll ]; then
-            find "$DEPENDENCY_TEMP_DIR" -maxdepth 1 -type f -name '*.dll' -exec cp {} /mnt/server/BepInEx/plugins \;
+        # Copy root-level DLL files into BepInEx/plugins
+        ROOT_DLLS=("$DEPENDENCY_TEMP_DIR"/*.dll)
+
+        if [ -e "${ROOT_DLLS[0]}" ]; then
+            cp -f -- "${ROOT_DLLS[@]}" /mnt/server/BepInEx/plugins/
             echo "Copied ROOT level DLL files to BepInEx/plugins"
         fi
 
