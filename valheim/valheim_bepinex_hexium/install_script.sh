@@ -110,6 +110,8 @@ if [ ! -z "$V_MODPACK" ]; then
     BEPINEX_VERSION_NUMBER=$(jq -r '.dependencies[] | select(startswith("denikson-BepInExPack_Valheim-")) | split("-")[-1]' <<< "$MODPACK_API_RESPONSE")
     BEPINEX_DOWNLOAD_URL=$(curl -fsSL --max-time 5 -H "accept: application/json" "${V_MODPACK_URL%%/package/*}/package/denikson/BepInExPack_Valheim/${BEPINEX_VERSION_NUMBER}/" | jq -r ".download_url")
     MODPACK_DEPENDENCIES=$(jq -r '.dependencies[]' <<< "$MODPACK_API_RESPONSE")
+    MODPACK_NAME=$(jq -r '.name' <<< "$MODPACK_API_RESPONSE")
+    MODPACK_VERSION_NUMBER=$(jq -r '.version_number' <<< "$MODPACK_API_RESPONSE")
 else
     echo -e "${YELLOW}No modpack specified, installing latest BepInEx${NC}"
     if ! LATEST_BEPINX_API_RESPONSE=$(curl -fsSL --max-time 5 -H "accept: application/json" "https://hexium.gg/api/experimental/package/denikson/BepInExPack_Valheim/"); then
@@ -151,7 +153,7 @@ echo -e "${GREEN}BepInEx installation completed.${NC}"
 
 if [ ! -z "$V_MODPACK_URL" ]; then
 
-    echo -e "${YELLOW}Downloading ModPack ($V_MODPACK) from $V_MODPACK_URL${NC}"
+    echo -e "${YELLOW}Downloading ModPack: $MODPACK_NAME ($MODPACK_VERSION_NUMBER) from $V_MODPACK_URL${NC}"
 
     # Delete old dependencies
     rm -Rf /mnt/server/BepInEx/plugins/*
