@@ -3,6 +3,9 @@
 #
 # Server Files: /mnt/server
 # Image to install with is 'ghcr.io/ptero-eggs/installers:debian'
+echo "Starting Valheim + BepInEx + Modpack installation..."
+
+echo "Updating package lists and installing required system dependencies..."
 apt -y update
 apt -y --no-install-recommends --no-install-suggests install curl jq p7zip-full ca-certificates
 
@@ -18,6 +21,7 @@ else
 fi
 
 # Download and Install steamcmd
+echo "Downloading and Decompressing Linux SteamCMD..."
 STEAM_TEMP_DIR=$(mktemp -d) || { echo "Failed to create TEMP directory"; exit 1; }
 cd "$STEAM_TEMP_DIR"
 
@@ -38,6 +42,7 @@ chown -R root:root /mnt
 export HOME=/mnt/server
 
 # Install game using SteamCMD
+echo "Installing Valheim server using SteamCMD..."
 if ! ./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}" ) ${INSTALL_FLAGS} validate +quit; then
     echo "Error: SteamCMD failed to install or update the Valheim server"
     exit 1
