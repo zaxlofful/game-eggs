@@ -225,6 +225,11 @@ if [ ! -z "$V_MODPACK_URL" ]; then
                     echo -e "${YELLOW}Copying patcher DLL $RELATIVE_FILE to BepInEx/patchers${NC}"
                     cp -f -- "$FILE" /mnt/server/BepInEx/patchers/
                     ;;
+                "$DEPENDENCY_TEMP_DIR"/valheim_Data/*)
+                    # TODO: Handle Valheim game data DLLs
+                    echo -e "${YELLOW}Skipping \"valheim_Data\" DLL: $RELATIVE_FILE${NC}"
+                    ;;
+
                 *)
                     echo -e "${YELLOW}Copying plugin DLL $RELATIVE_FILE to BepInEx/plugins${NC}"
                     cp -f -- "$FILE" /mnt/server/BepInEx/plugins/
