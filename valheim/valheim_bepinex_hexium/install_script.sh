@@ -17,7 +17,7 @@ echo -e "${BLUE}-------------------------------------------------------${NC}"
 
 echo -e "${YELLOW}Updating package lists and installing required system dependencies...${NC}"
 apt-get -qq -y update
-apt-get -qq-y --no-install-recommends --no-install-suggests install curl jq p7zip-full ca-certificates
+apt-get -qq -y --no-install-recommends --no-install-suggests install curl jq p7zip-full ca-certificates
 
 # Just in case someone removed the defaults.
 if [ "${STEAM_USER}" == "" ]; then
