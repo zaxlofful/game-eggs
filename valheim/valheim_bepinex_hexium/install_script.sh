@@ -204,6 +204,15 @@ if [ ! -z "$V_MODPACK_URL" ]; then
             exit 1
         fi
 
+        # Fix Windows-style backslashes in extracted paths
+        find "$DEPENDENCY_TEMP_DIR" -depth -name '*\*' -exec bash -c '
+            for FILE; do
+                NEW_FILE="${FILE//\\//}"
+                mkdir -p "$(dirname "$NEW_FILE")"
+                mv "$FILE" "$NEW_FILE"
+            done
+        ' bash {} +
+
         # Check if the extracted directory contains BepInEx folder or individual plugin folders
         if [ -d "$DEPENDENCY_TEMP_DIR/BepInEx" ]; then
             echo -e "${YELLOW}Copying BepInEx directory as is${NC}"
