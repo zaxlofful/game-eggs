@@ -43,10 +43,21 @@ export HOME=/mnt/server
 
 # Install game using SteamCMD
 echo "Installing Valheim server using SteamCMD..."
-if ! ./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}" ) ${INSTALL_FLAGS} validate +quit; then
-    echo "Error: SteamCMD failed to install or update the Valheim server"
-    exit 1
-fi
+STEAMCMD_ATTEMPTS=3
+
+for ((STEAMCMD_ATTEMPT=1; STEAMCMD_ATTEMPT<=STEAMCMD_ATTEMPTS; STEAMCMD_ATTEMPT++)); do
+    if ./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}" ) ${INSTALL_FLAGS} validate +quit; then
+        break
+    fi
+
+    if [ "$STEAMCMD_ATTEMPT" -eq "$STEAMCMD_ATTEMPTS" ]; then
+        echo "Error: SteamCMD failed after $STEAMCMD_ATTEMPTS attempts"
+        exit 1
+    fi
+
+    echo "SteamCMD attempt $STEAMCMD_ATTEMPT failed, retrying in 5 seconds..."
+    sleep 5
+done
 
 # Set up 32 bit libraries
 mkdir -p /mnt/server/.steam/sdk32
