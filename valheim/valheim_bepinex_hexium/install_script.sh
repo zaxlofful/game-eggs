@@ -217,7 +217,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
         done
 
         # Copy extracted DLL files to the appropriate BepInEx directories
-        find "$DEPENDENCY_TEMP_DIR" -type f -name '*.dll' | while IFS= read -r FILE; do
+        find "$DEPENDENCY_TEMP_DIR" -type f \( -iname '*.dll' -o -iname '*.so' \) -print0 | while IFS= read -r -d '' FILE; do
             RELATIVE_FILE="${FILE#"$DEPENDENCY_TEMP_DIR"/}"
 
             case "$FILE" in
