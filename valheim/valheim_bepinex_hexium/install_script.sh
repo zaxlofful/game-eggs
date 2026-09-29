@@ -228,7 +228,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
                         echo -e "${YELLOW}WARNING: Overwriting /mnt/server/BepInEx/patchers/${FILE##*/}\n${NC}"
                     fi
 
-                    cp -fv -- "$FILE" /mnt/server/BepInEx/patchers/
+                    cp -f -- "$FILE" /mnt/server/BepInEx/patchers/
                     ;;
 
                 "$DEPENDENCY_TEMP_DIR"/valheim_Data/*)
@@ -244,7 +244,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
                         echo -e "${YELLOW}WARNING: Overwriting $DEST\n${NC}"
                     fi
 
-                    cp -fv -- "$FILE" "$DEST"
+                    cp -f -- "$FILE" "$DEST"
                     ;;
 
                 *)
