@@ -11,6 +11,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Only seed/replace server config on the first successful installation.
+INSTALL_MARKER="/mnt/server/BepInEx/config/.pterodactyl-egg-installed"
+if [ -f "$INSTALL_MARKER" ]; then
+    IS_NEW_INSTALL=0
+    echo -e "${YELLOW}Existing installation detected; preserving server configuration.${NC}"
+else
+    IS_NEW_INSTALL=1
+    echo -e "${YELLOW}New installation detected; will apply ModPack configuration.${NC}"
+fi
+
 echo -e "${BLUE}-------------------------------------------------------${NC}"
 echo -e "${YELLOW}-----Install Valheim Dedicated Server via SteamCMD-----${NC}"
 echo -e "${BLUE}-------------------------------------------------------${NC}"
@@ -268,37 +278,39 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
     echo -e "${GREEN}All dependencies have been downloaded and installed successfully.${NC}"
 
-    # Apply custom server settings from the TOP-LEVEL ModPack only, after dependencies.
-    MODPACK_DOWNLOAD_URL=$(jq -er '.download_url // .latest.download_url // empty' <<< "$MODPACK_API_RESPONSE") || {
-        echo -e "${RED}Error: No download URL found for $V_MODPACK${NC}"
-        exit 1
-    }
+    if [ "$IS_NEW_INSTALL" -eq 1 ]; then
+        # Apply custom server settings from the TOP-LEVEL ModPack only, after dependencies.
+        MODPACK_DOWNLOAD_URL=$(jq -er '.download_url // .latest.download_url // empty' <<< "$MODPACK_API_RESPONSE") || {
+            echo -e "${RED}Error: No download URL found for $V_MODPACK${NC}"
+            exit 1
+        }
 
-    MODPACK_ZIP="$TEMP_DIR/modpack-config.zip"
-    MODPACK_CONFIG_TEMP_DIR="$TEMP_DIR/modpack-config"
+        MODPACK_ZIP="$TEMP_DIR/modpack-config.zip"
+        MODPACK_CONFIG_TEMP_DIR="$TEMP_DIR/modpack-config"
 
-    echo -e "${YELLOW}Downloading top-level ModPack configuration from $MODPACK_DOWNLOAD_URL${NC}"
-    if ! curl -fsSL -o "$MODPACK_ZIP" "$MODPACK_DOWNLOAD_URL"; then
-        echo -e "${RED}Error: Failed to download top-level ModPack archive${NC}"
-        exit 1
-    fi
-
-    mkdir -p "$MODPACK_CONFIG_TEMP_DIR"
-    if ! 7z x -y "-o$MODPACK_CONFIG_TEMP_DIR" "$MODPACK_ZIP" >/dev/null; then
-        echo -e "${RED}Error: Failed to extract top-level ModPack archive${NC}"
-        exit 1
-    fi
-
-    if [ -d "$MODPACK_CONFIG_TEMP_DIR/BepInEx/config" ]; then
-        echo -e "${YELLOW}Installing custom ModPack configurations...${NC}"
-        mkdir -p /mnt/server/BepInEx/config
-        if ! cp -a "$MODPACK_CONFIG_TEMP_DIR/BepInEx/config/." /mnt/server/BepInEx/config/; then
-            echo -e "${RED}Error: Failed to copy ModPack configuration${NC}"
+        echo -e "${YELLOW}Downloading top-level ModPack configuration from $MODPACK_DOWNLOAD_URL${NC}"
+        if ! curl -fsSL -o "$MODPACK_ZIP" "$MODPACK_DOWNLOAD_URL"; then
+            echo -e "${RED}Error: Failed to download top-level ModPack archive${NC}"
             exit 1
         fi
-        echo -e "${GREEN}Top-level ModPack configuration installed.${NC}"
-    else
-        echo -e "${YELLOW}No BepInEx/config directory supplied by the top-level ModPack.${NC}"
+
+        mkdir -p "$MODPACK_CONFIG_TEMP_DIR"
+        if ! 7z x -y "-o$MODPACK_CONFIG_TEMP_DIR" "$MODPACK_ZIP" >/dev/null; then
+            echo -e "${RED}Error: Failed to extract top-level ModPack archive${NC}"
+            exit 1
+        fi
+
+        if [ -d "$MODPACK_CONFIG_TEMP_DIR/BepInEx/config" ]; then
+            echo -e "${YELLOW}Installing custom ModPack configurations...${NC}"
+            mkdir -p /mnt/server/BepInEx/config
+            if ! cp -a "$MODPACK_CONFIG_TEMP_DIR/BepInEx/config/." /mnt/server/BepInEx/config/; then
+                echo -e "${RED}Error: Failed to copy ModPack configuration${NC}"
+                exit 1
+            fi
+            echo -e "${GREEN}Top-level ModPack configuration installed.${NC}"
+        else
+            echo -e "${YELLOW}No BepInEx/config directory supplied by the top-level ModPack.${NC}"
+        fi
     fi
 
     rm -Rf "$MODPACK_CONFIG_TEMP_DIR"
@@ -313,6 +325,12 @@ echo -e "${BLUE}-------------------------------------------------------${NC}"
 echo -e "${YELLOW}Cleaning up temporary files...${NC}"
 rm -Rf "$TEMP_DIR"
 rm -Rf "$STEAM_TEMP_DIR"
+
+# Mark the server installed only after all installation and cleanup steps finish.
+if ! mkdir -p /mnt/server/BepInEx/config || ! touch "$INSTALL_MARKER"; then
+    echo -e "${RED}Error: Could not create installation marker: $INSTALL_MARKER${NC}"
+    exit 1
+fi
 
 echo -e "${BLUE}-------------------------------------------------------${NC}"
 echo -e "${GREEN}----------Installation Completed Successfully----------${NC}"
