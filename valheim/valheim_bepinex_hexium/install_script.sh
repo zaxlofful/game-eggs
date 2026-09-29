@@ -222,17 +222,38 @@ if [ ! -z "$V_MODPACK_URL" ]; then
 
             case "$FILE" in
                 "$DEPENDENCY_TEMP_DIR"/BepInEx/patchers/*|"$DEPENDENCY_TEMP_DIR"/patchers/*)
-                    echo -e "${YELLOW}Copying patcher DLL $RELATIVE_FILE to BepInEx/patchers${NC}"
-                    cp -f -- "$FILE" /mnt/server/BepInEx/patchers/
+                    echo -e "${YELLOW}Copying patcher library $RELATIVE_FILE to BepInEx/patchers${NC}"
+
+                    if [[ -e "/mnt/server/BepInEx/patchers/${FILE##*/}" || -L "/mnt/server/BepInEx/patchers/${FILE##*/}" ]]; then
+                        echo -e "${YELLOW}WARNING: Overwriting /mnt/server/BepInEx/patchers/${FILE##*/}\n${NC}"
+                    fi
+
+                    cp -fv -- "$FILE" /mnt/server/BepInEx/patchers/
                     ;;
+
                 "$DEPENDENCY_TEMP_DIR"/valheim_Data/*)
-                    # TODO: Handle Valheim game data DLLs
-                    echo -e "${YELLOW}Skipping \"valheim_Data\" DLL: $RELATIVE_FILE${NC}"
-                    cp -f -- "$FILE" /mnt/server/valheim_server_Data/
+                    RELATIVE_PATH="${FILE#"$DEPENDENCY_TEMP_DIR"/valheim_Data/}"
+                    DEST="/mnt/server/valheim_server_Data/$RELATIVE_PATH"
+
+                    echo -e "${YELLOW}Copying valheim_Data library $RELATIVE_FILE to valheim_server_Data${NC}"
+
+                    # Recreate the original directory hierarchy
+                    mkdir -p -- "${DEST%/*}"
+
+                    if [[ -e "$DEST" || -L "$DEST" ]]; then
+                        echo -e "${YELLOW}WARNING: Overwriting $DEST\n${NC}"
+                    fi
+
+                    cp -fv -- "$FILE" "$DEST"
                     ;;
 
                 *)
-                    echo -e "${YELLOW}Copying plugin DLL $RELATIVE_FILE to BepInEx/plugins${NC}"
+                    echo -e "${YELLOW}Copying plugin library $RELATIVE_FILE to BepInEx/plugins${NC}"
+                    
+                    if [[ -e "/mnt/server/BepInEx/plugins/${FILE##*/}" || -L "/mnt/server/BepInEx/plugins/${FILE##*/}" ]]; then
+                        echo -e "${YELLOW}WARNING: Overwriting /mnt/server/BepInEx/plugins/${FILE##*/}\n${NC}"
+                    fi
+
                     cp -f -- "$FILE" /mnt/server/BepInEx/plugins/
                     ;;
             esac
