@@ -228,6 +228,7 @@ if [ ! -z "$V_MODPACK_URL" ]; then
                 "$DEPENDENCY_TEMP_DIR"/valheim_Data/*)
                     # TODO: Handle Valheim game data DLLs
                     echo -e "${YELLOW}Skipping \"valheim_Data\" DLL: $RELATIVE_FILE${NC}"
+                    cp -f -- "$FILE" /mnt/server/valheim_server_Data/
                     ;;
 
                 *)
